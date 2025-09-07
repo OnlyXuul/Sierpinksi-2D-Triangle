@@ -5,11 +5,11 @@ Sierpinsky' triangle drawn in 2D using Odin and Raylib. Command line options are
 - Press ESC to exit.
 - Compute time is ~ O(3^MAXDEPTH).
 - FPS target is set to 60.
-- Use -f commande line option to use as screensaver. Cursor is only hidden in this mode.
+- Use <-f true> command line option to use as screensaver. Cursor is only hidden in this mode.
 - Press C to see keyboard control options.
-- Non-inverted mode is best for color mode "same". The other color modes are not apparent when drawn inverted. This is due the the standard method to drawn triangle upright per depth. This results in all the lines getting redrawn on top of each other all the way to max depth.
+- Color mode "same" is best for the non-inverted option. The other color modes are not apparent when drawn non-inverted. This is a result of the standard method to drawn each triangle upright per depth. This results in all the lines getting redrawn on top of each other all the way to max depth.
 - Inverted mode draws each depth by only drawing each triangle upside down.
-- Three color modes are availible. All 3 mostly benefit from drawsolid option set to true.
+- Three color modes are availible. All 3 mostly benefit from drawsolid option set to true and inverted set to true.
 
 # Command LIne Options:
 - -triangle size, -ts, size in height of triangle range: float = 81.0 : screen height - 81.0
