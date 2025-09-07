@@ -1,5 +1,5 @@
 # Sierpinksi-2D-Triangle
-Sierpinsky' triangle drawn in 2D using Odin and Raylib. Command line options are availible for use as a screensaver. The compiled exe in this repository is for Windows only. The code should compile and run fine on Linux. Tested on Kubuntu.
+Sierpinsky's triangle drawn in 2D using Odin and Raylib. Command line options are availible for use as a screensaver. The compiled exe in this repository is for Windows only. The code should compile and run fine on Linux. Tested on Kubuntu.
 
 # Notes:
 - Press ESC to exit.
