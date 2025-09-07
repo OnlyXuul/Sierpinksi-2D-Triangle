@@ -8,7 +8,7 @@ Sierpinsky triangle drawn in 2D using Odin and Raylib. Command line options are 
 - Use <-f true> command line option to use as screensaver. Cursor is only hidden in this mode.
 - Press C to see keyboard control options.
 - Color mode "same" is best for the non-inverted option. The other color modes are not apparent when drawn non-inverted. This is a side effect of the standard method to draw each triangle upright per depth. This results in all the lines getting redrawn on top of each other all the way to max depth.
-- Inverted mode draws each depth by only drawing each triangle upside down.
+- Inverted mode draws each depth by only drawing each triangle upside down. This prevents overlap of drawn lines allowing for distinct color differences.
 - Three color modes are availible. All 3 mostly benefit from drawsolid option set to true and inverted set to true.
 
 # Command LIne Options:
