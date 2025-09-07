@@ -25,4 +25,4 @@ Sierpinsky triangle drawn in 2D using Odin and Raylib. Command line options are 
 - -fullscreen, -f, enables/disables fullscreen (hides cursor), default = false
 
 # Example Usage:
-sierpinski.exe -ts 600 -b true -ra -0.3 -bs 4 -ds true -iv true -cm mixed -md 6 -c false -i false -f true
+sierpinski.exe -ts 600 -b true -ra -0.3 -cs 0.25 -bs 4 -ds true -iv true -cm mixed -md 6 -c false -i false -f true
