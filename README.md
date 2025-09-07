@@ -3,7 +3,7 @@ Sierpinsky' triangle drawn in 2D using Odin and Raylib. Command line options are
 
 # Notes:
 - Press ESC to exit.
-- Compute time is O(3^MAXDEPTH).
+- Compute time is ~ O(3^MAXDEPTH).
 - FPS target is set to 60.
 - Use -f commande line option to use as screensaver. Cursor is only hidden in this mode.
 - Press C to see keyboard control options.
