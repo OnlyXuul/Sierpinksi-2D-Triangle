@@ -20,4 +20,4 @@ Sierpinsky triangle drawn in 2D using Odin and Raylib. The compiled exe in this 
 - -inverted, -i, enables/disables drawing inverted, default = false
 
 # Example Usage:
-sierpinski.exe -s 600 -b true -a -0.3 -b 4 -w false -i false -m mixed -d 5
+sierpinski.exe -s 600 -a -0.3 -b 4 -w false -i false -m mixed -d 5
