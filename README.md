@@ -6,6 +6,7 @@ The purpose was to learn Odin, Raylib, Raygui together, while doing something si
 # Notes:
 - Press ESC to exit.
 - Use <-h> command line option for help
+- Press U to display the main control ui.
 - Press L or C to see keyboard control legend
 - Three color modes are availible for both standard and inverted methods.
 
