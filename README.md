@@ -5,24 +5,21 @@ Sierpinsky triangle drawn in 2D using Odin and Raylib. Command line options are 
 - Press ESC to exit.
 - Compute time is ~ O(3^MAXDEPTH).
 - FPS target is set to 60.
-- Use <-f true> command line option to use as screensaver. Cursor is only hidden in this mode.
-- Press C to see keyboard control options.
-- Color mode "same" is best for the non-inverted option. The other color modes are not apparent when drawn non-inverted. This is a side effect of the standard method to draw each triangle upright per depth. This results in all the lines getting redrawn on top of each other all the way to max depth.
-- Inverted mode draws each depth by only drawing each triangle upside down. This prevents overlap of drawn lines allowing for distinct color differences.
-- Three color modes are availible. All 3 mostly benefit from drawsolid option set to true and inverted set to true.
+- Use <-h> command line option for help
+- Press L or C to see keyboard control options.
+- Three color modes are availible.
 
 # Command LIne Options:
-- -triangle size, -ts, size in height of triangle range: float = 81.0 : screen height - 81.0
-- -maxdepth, -md, sierpinski depth range: int = 0 : 9
-- -colorspeed, -cs, color change speed, range: float = 0.0 : 1.0
-- -rotateangle, -ra, enables rotation and sets speed/direction, range: float = -6.0 : 6.0
-- -bouncespeed", -bs, enables bounce and sets speed, range: float = 0.0 : 10.0
-- -colormode, -cm, sets color mode, default = same - values: same, mixed, or grad
-- -controls, -c, enables/disables display of controls info, default = true
-- -info, -i, enables/disables display of info stats, default = true
-- -drawsolid, -ds, enables/disables drawing solid, default = true
-- -inverted, -iv, enables/disables drawing inverted, default = true
-- -fullscreen, -f, enables/disables fullscreen (hides cursor), default = false
+- -triangle size, -s, size in height of triangle range: float = 81.0 : screen height - 81.0
+- -maxdepth, -d, sierpinski depth range: int = 0 : 9
+- -colorspeed, -c, color change speed, range: float = 0.0 : 1.0
+- -rotateangle, -a, enables rotation and sets speed/direction, range: float = -6.0 : 6.0
+- -bouncespeed", -b, enables bounce and sets speed, range: float = 0.0 : 10.0
+- -colormode, -m, sets color mode, default = same - values: same, mixed, or grad
+- -legend, -l, enables/disables display of controls legend, default = true
+- -ui, -u, enables/disables display of main ui, default = true
+- -wireframe, -w, enables/disables wireframe, default = false
+- -inverted, -i, enables/disables drawing inverted, default = false
 
 # Example Usage:
-sierpinski.exe -ts 600 -b true -ra -0.3 -cs 0.25 -bs 4 -ds true -iv true -cm mixed -md 6 -c false -i false -f true
+sierpinski.exe -s 600 -b true -a -0.3 -b 4 -w false -i false -m mixed -d 5 -l false -u false -f true
