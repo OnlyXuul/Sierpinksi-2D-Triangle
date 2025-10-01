@@ -1,6 +1,8 @@
 # Sierpinksi-2D-Triangle
 Sierpinsky triangle drawn in 2D using Odin and Raylib. The compiled exe in this repository was created on Windows. The code should compile and run fine on Linux. Tested on Kubuntu.
 
+The purpose was to learn Odin, Raylib, Raygui together, while doing something simple, but with enough complexity to get my feet wet.
+
 # Notes:
 - Press ESC to exit.
 - Use <-h> command line option for help
