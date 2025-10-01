@@ -15,15 +15,26 @@ getRandomColor :: proc() -> rl.Color { using rl
   return { u8(GetRandomValue(0,255)), u8(GetRandomValue(0,255)), u8(GetRandomValue(0,255)), 255 }
 }
 
-//check if mouse is in an active location given by rect
-isMouseInRect :: proc(mpos: [2]f32, rect: rl.Rectangle) -> bool {
-  if mpos.x >= rect.x &&
-     mpos.y >= rect.y &&
-     mpos.x <= rect.x + rect.width &&
-     mpos.y <= rect.y + rect.height {
-    return true
+//check if mouse is in an active location given by rect - ..any exclude_rects optional
+isMouseExclusive :: proc(pos: [2]f32, include: rl.Rectangle, exclude: ..rl.Rectangle) -> (isexclusive: bool) {
+  if len(exclude) > 0 { //check for exclusivity if ..any of not_rects are provided
+    for ex in exclude {
+      if pos.x >= ex.x &&
+         pos.y >= ex.y &&
+         pos.x <= ex.x + ex.width &&
+         pos.y <= ex.y + ex.height {
+         isexclusive = false
+      }
+    }
   }
-  return false
+  //if not false from above, return true if in active inclusive_rect
+  if pos.x >= include.x &&
+     pos.y >= include.y &&
+     pos.x <= include.x + include.width &&
+     pos.y <= include.y + include.height {
+     isexclusive = true
+  }
+  return
 }
 
 //convert rl.Color to i32

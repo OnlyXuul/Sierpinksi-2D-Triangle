@@ -140,6 +140,7 @@ initColor :: proc(t: ^SEntity) { using rl
 
 //this is messy, but I couldn't find a better way forward without alot of trial and error
 //style behaviour seems inconsistant and many elements seem to overlap
+//This is trimmed to only what I wanted after trial and error
 initGuiStyle :: proc() { using rl
   GDP :: rl.GuiDefaultProperty
   GCP :: rl.GuiControlProperty
@@ -154,11 +155,11 @@ initGuiStyle :: proc() { using rl
 
   //Default Control Properties
   GuiSetStyle(.DEFAULT, i32(GCP.BORDER_COLOR_NORMAL), ctoi32(DARKGRAYALPHA))
-  GuiSetStyle(.DEFAULT, i32(GCP.BORDER_COLOR_FOCUSED), ctoi32(DARKGRAYALPHA))
+  GuiSetStyle(.DEFAULT, i32(GCP.BORDER_COLOR_FOCUSED), ctoi32(GRAYALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.BORDER_COLOR_PRESSED), ctoi32(GRAYALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.BORDER_COLOR_DISABLED), ctoi32(DARKGRAYALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.BASE_COLOR_NORMAL),   ctoi32(BLACKALPHA))
-  GuiSetStyle(.DEFAULT, i32(GCP.BASE_COLOR_FOCUSED),  ctoi32(DARKGRAYALPHA))
+  GuiSetStyle(.DEFAULT, i32(GCP.BASE_COLOR_FOCUSED),  ctoi32(GRAYALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.BASE_COLOR_PRESSED),  ctoi32(GRAYALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.BASE_COLOR_DISABLED), ctoi32(BLACKALPHA))
   GuiSetStyle(.DEFAULT, i32(GCP.TEXT_COLOR_NORMAL),   ctoi32(DARKGRAYALPHA))
@@ -175,7 +176,7 @@ initGuiStyle :: proc() { using rl
   GuiSetStyle(.BUTTON, i32(GCP.BORDER_COLOR_PRESSED), ctoi32(GRAYALPHA))
   GuiSetStyle(.BUTTON, i32(GCP.BORDER_COLOR_DISABLED), ctoi32(DARKGRAYALPHA))
   GuiSetStyle(.BUTTON, i32(GCP.BASE_COLOR_NORMAL), ctoi32(BLACKALPHA))
-  GuiSetStyle(.BUTTON, i32(GCP.BASE_COLOR_FOCUSED), ctoi32(DARKGRAYALPHA))
+  GuiSetStyle(.BUTTON, i32(GCP.BASE_COLOR_FOCUSED), ctoi32(GRAYALPHA))
   GuiSetStyle(.BUTTON, i32(GCP.BASE_COLOR_PRESSED), ctoi32(GRAYALPHA))
   GuiSetStyle(.BUTTON, i32(GCP.BASE_COLOR_DISABLED), ctoi32(DARKGRAYALPHA))
   GuiSetStyle(.BUTTON, i32(GCP.TEXT_COLOR_NORMAL), ctoi32(DARKGRAYALPHA))
@@ -224,5 +225,4 @@ initGuiStyle :: proc() { using rl
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_COLOR_PRESSED), ctoi32(BLACKALPHA))
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_COLOR_DISABLED), ctoi32(BLACKALPHA))
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_ALIGNMENT), 1)
-
 }

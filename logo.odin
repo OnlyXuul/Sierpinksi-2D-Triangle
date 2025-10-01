@@ -17,61 +17,76 @@ Logo :: struct {
 }
 
 //reset any number of logos
-ResetLogo :: proc(logos: ..^Logo) { for logo in logos {logo.state = 0} }
+ResetLogo :: proc(logos: ..^Logo) { if len(logos) > 0 { for logo in logos {logo.state = 0} } }
 
-//use for staggering multiple logs for a nice effect
+//use for staggering 1 trail logo after a lead logo for a nice effect
 staggerStates :: proc(lead: ^Logo, trail: ^Logo ) {
   if lead.state <= 2 { trail.state = 1} else if trail.state == 1 { trail.state = 2 }
 }
 
+//allow for a list of logos to stagger 1 after the other
+staggerStatesMulti :: proc(lead: ^Logo, trail: ..^Logo ) {
+  if len(trail) > 0 {
+    if lead.state <= 2 { for t in trail {t.state = 1} }
+    else if trail[0].state == 1 { trail[0].state = 2 }
+    if len(trail) > 1 {
+      for i in 1..<len(trail) {
+        if trail[i-1].state <= 2 { trail[i].state = 1} else if trail[i].state == 1 { trail[i].state = 2 }
+      }
+    }
+  }
+}
+
 //draw logo(s) - proc pointers used to save space on repeated copies of the same draw procedure in each case
 drawLogo :: proc (logos: ..^Logo) { using rl
-  for logo in logos {
-    anime: [8]proc (logo: Logo) = {
-      proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s, logo.s}, logo.bg) }, //background
-      proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s/16, logo.s/16}, logo.fg) }, //small blinking box
-      proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.c.t, logo.s/16}, logo.fg) }, //top
-      proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s/16, logo.c.t}, logo.fg) }, //left
-      proc(logo: Logo) { DrawRectangleRec({logo.x + logo.s - (logo.s/16), logo.y, logo.s/16, logo.c.b}, logo.fg) }, //right
-      proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y + logo.s - (logo.s/16), logo.c.b , logo.s/16}, logo.fg) }, //bottom
-      proc(logo: Logo) { DrawTextEx(logo.font, sub(logo), {logo.x, logo.y} + logo.s - txt(logo) - (2 * logo.s/16), logo.fs, 4, logo.fg) },
-      proc(logo: Logo) { if logo.glyph != {} { logo.glyph(logo) } }
-    }
-    
-    //font scaling for when font size is not set
-    if logo.fs == 0 { logo.fs = round(logo.s/32*10-10) }
+  if len(logos) > 0 {
+    for logo in logos {
+      anime: [8]proc (logo: Logo) = {
+        proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s, logo.s}, logo.bg) }, //background
+        proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s/16, logo.s/16}, logo.fg) }, //small blinking box
+        proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.c.t, logo.s/16}, logo.fg) }, //top
+        proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s/16, logo.c.t}, logo.fg) }, //left
+        proc(logo: Logo) { DrawRectangleRec({logo.x + logo.s - (logo.s/16), logo.y, logo.s/16, logo.c.b}, logo.fg) }, //right
+        proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y + logo.s - (logo.s/16), logo.c.b , logo.s/16}, logo.fg) }, //bottom
+        proc(logo: Logo) { DrawTextEx(logo.font, sub(logo), {logo.x, logo.y} + logo.s - txt(logo) - (2 * logo.s/16), logo.fs, 4, logo.fg) },
+        proc(logo: Logo) { if logo.glyph != {} { logo.glyph(logo) } }
+      }
+      
+      //font scaling for when font size is not set
+      if logo.fs == 0 { logo.fs = round(logo.s/32*10-10) }
 
-    //shortcuts used by DrawTextEx proc pointer above
-    sub :: proc(logo: Logo) -> cstring { return TextSubtext(logo.text, 0, (i32(logo.c.f)/12) + 1) } // every 12 frames, one more letter
-    txt :: proc(logo: Logo) -> rl.Vector2 { return MeasureTextEx(logo.font, logo.text, logo.fs, 4) }
+      //shortcuts used by DrawTextEx proc pointer above
+      sub :: proc(logo: Logo) -> cstring { return TextSubtext(logo.text, 0, (i32(logo.c.f)/12) + 1) } // every 12 frames, one more letter
+      txt :: proc(logo: Logo) -> rl.Vector2 { return MeasureTextEx(logo.font, logo.text, logo.fs, 4) }
 
-    //state machine for logo animation
-    switch logo.state {
-    case 0:
-      if logo.font == {} { logo.font = GetFontDefault() }
-      logo.c = {0, 0, 0}
-      logo.state = 1
-    case 1: //small box blinking
-      anime[0](logo^)
-      if i32(logo.c.f) % 30 >= 15 { anime[1]((logo^)) } //blink square on/off every 15 frames
-      logo.c.f +=1
-      if logo.c.f >= 120 { logo.state = 2; logo.c.f = 0 } //reset frame counter for text case
-    case 2: //top and left bars growing
-      if logo.c.t == 0 { logo.c.t = logo.s/16 } //kickstart at 0 for smoother transition
-      for i in 0..=3 { anime[i](logo^) }
-      logo.c.t += logo.s/64
-      if logo.c.t >= logo.s { logo.state = 3; logo.c.f = 0 } //reset frame counter incase state 1 was manually skipped
-    case 3: //bottom and right bars growing
-      if logo.c.b == 0 { logo.c.b = logo.s/16 } //kickstart at 0 for smoother transition
-      for i in 0..=5 { anime[i](logo^) }
-      logo.c.b += logo.s/64
-      if logo.c.b >= logo.s { logo.state = 4; logo.c.f = 0 } //reset frame counter incase state 1 was manually skipped
-    case 4: //letters appearing (one by one)
-      for i in 0..=6 { anime[i](logo^) }
-      logo.c.f += 1
-      if i32(logo.c.f) >= (12 * i32(len(logo.text))) { logo.state = 5 }
-    case 5: //everything
-      for i in 0..=7 { anime[i](logo^) }
+      //state machine for logo animation
+      switch logo.state {
+      case 0:
+        if logo.font == {} { logo.font = GetFontDefault() }
+        logo.c = {0, 0, 0}
+        logo.state = 1
+      case 1: //small box blinking
+        anime[0](logo^)
+        if i32(logo.c.f) % 30 >= 15 { anime[1]((logo^)) } //blink square on/off every 15 frames
+        logo.c.f +=1
+        if logo.c.f >= 120 { logo.state = 2; logo.c.f = 0 } //reset frame counter for text case
+      case 2: //top and left bars growing
+        if logo.c.t == 0 { logo.c.t = logo.s/16 } //kickstart at 0 for smoother transition
+        for i in 0..=3 { anime[i](logo^) }
+        logo.c.t += logo.s/64
+        if logo.c.t >= logo.s { logo.state = 3; logo.c.f = 0 } //reset frame counter incase state 1 was manually skipped
+      case 3: //bottom and right bars growing
+        if logo.c.b == 0 { logo.c.b = logo.s/16 } //kickstart at 0 for smoother transition
+        for i in 0..=5 { anime[i](logo^) }
+        logo.c.b += logo.s/64
+        if logo.c.b >= logo.s { logo.state = 4; logo.c.f = 0 } //reset frame counter incase state 1 was manually skipped
+      case 4: //letters appearing (one by one)
+        for i in 0..=6 { anime[i](logo^) }
+        logo.c.f += 1
+        if i32(logo.c.f) >= (12 * i32(len(logo.text))) { logo.state = 5 }
+      case 5: //everything
+        for i in 0..=7 { anime[i](logo^) }
+      }
     }
   }
 }

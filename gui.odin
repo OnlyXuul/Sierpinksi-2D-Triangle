@@ -32,7 +32,7 @@ GEntity :: struct {
 
 //to allow swizzle of xy with v and still have a true Rectangle type with width, height
 RectVectUnion :: struct #raw_union {
-  r: rl.Rectangle,
+  using _: rl.Rectangle,
   v: rl.Vector4,
 }
 
@@ -116,9 +116,9 @@ GStates :: enum {
 
 //create initial gui struct with relevant defaults
 createGuis :: proc() -> (g: GEntity) { using rl
-  g.mwb.r = {20, 20, 455, 600}
+  g.mwb.v = {20, 20, 455, 600}
   updateMGrid(&g)
-  g.cwb.r = {g.mwb.r.x + g.mwb.r.width + 10, g.mwb.r.y, 484, 480}
+  g.cwb.v = {g.mwb.x + g.mwb.width + 10, g.mwb.y, 484, 480}
   updateCGrid(&g)
   g.states += {.AWBCLOSE} //about window is closed by default
   g.logos = {
@@ -202,18 +202,21 @@ drawAWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
     mpos := GetMousePosition()
     if g.awb.v.xy == {0,0} { //initial location, afterwards let mouse control move window
       center_screen := [2]f32{f32(GetRenderWidth()), f32(GetRenderHeight())}
-      g.awb.r = {(center_screen.x / 2) - (616 / 2), center_screen.y / 2 - (530 / 2), 616, 530}
+      g.awb.v = {(center_screen.x / 2) - (616 / 2), center_screen.y / 2 - (530 / 2), 616, 530}
     }
 
     is_top_z := g.zproc[len(g.zproc)-1] == drawAWB ? true:false
-    if bool(GuiWindowBox(g.awb.r, "About")) && is_top_z { g.states += {.AWBCLOSE} }
+    if is_top_z { //draw a highlighted behind GuiWindowBox title if top
+      DrawRectangleRec({g.awb.x, g.awb.y, g.awb.width, 24}, GRAYALPHA)
+    }
+    if bool(GuiWindowBox(g.awb, "About")) && is_top_z { g.states += {.AWBCLOSE} }
 
-    g.logos.ol_logo.xys = {g.awb.r.x + 28,  g.awb.r.y + g.awb.r.height - 156, 128}
-    g.logos.rl_logo.xys = {g.awb.r.x + 172, g.awb.r.y + g.awb.r.height - 156, 128}
-    g.logos.gl_logo.xys = {g.awb.r.x + 316, g.awb.r.y + g.awb.r.height - 156, 128}
-    g.logos.xl_logo.xys = {g.awb.r.x + 460, g.awb.r.y + g.awb.r.height - 156, 128}
+    g.logos.ol_logo.xys = {g.awb.x + 28,  g.awb.y + g.awb.height - 156, 128}
+    g.logos.rl_logo.xys = {g.awb.x + 172, g.awb.y + g.awb.height - 156, 128}
+    g.logos.gl_logo.xys = {g.awb.x + 316, g.awb.y + g.awb.height - 156, 128}
+    g.logos.xl_logo.xys = {g.awb.x + 460, g.awb.y + g.awb.height - 156, 128}
 
-    g.awb_tooltip[.AWBCLOSE].loc = {g.awb.r.x + g.awb.r.width - 21, g.awb.r.y + 3, 17, 17}
+    g.awb_tooltip[.AWBCLOSE].loc = {g.awb.x + g.awb.width - 21, g.awb.y + 3, 17, 17}
 
     text1: cstring = "Yet another Sierpinski demo. This is my goto\n"+
                      "for learning a new graphics library. I love this\n"+
@@ -227,22 +230,20 @@ drawAWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
                      "I hope you enjoyed.\n\n"+
                      "Find me at forum.odin-lang.org             --xuul"
 
-    DrawTextEx(GetFontDefault(), "Sierpinski's Triangle", {g.awb.r.x + 20, g.awb.r.y + 34}, 50, 4, GRAYALPHA)
-    DrawTextEx(GetFontDefault(), text1, {g.awb.r.x + 20, g.awb.r.y + 90}, 20, 4, GRAYALPHA)
+    DrawTextEx(GetFontDefault(), "Sierpinski's Triangle", {g.awb.x + 20, g.awb.y + 34}, 50, 4, GRAYALPHA)
+    DrawTextEx(GetFontDefault(), text1, {g.awb.x + 20, g.awb.y + 90}, 20, 4, GRAYALPHA)
     
-    DrawRectangleLinesEx({g.awb.r.x + 20,  g.awb.r.y + g.awb.r.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
-    DrawRectangleLinesEx({g.awb.r.x + 164, g.awb.r.y + g.awb.r.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
-    DrawRectangleLinesEx({g.awb.r.x + 308, g.awb.r.y + g.awb.r.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
-    DrawRectangleLinesEx({g.awb.r.x + 452, g.awb.r.y + g.awb.r.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
+    DrawRectangleLinesEx({g.awb.x + 20,  g.awb.y + g.awb.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
+    DrawRectangleLinesEx({g.awb.x + 164, g.awb.y + g.awb.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
+    DrawRectangleLinesEx({g.awb.x + 308, g.awb.y + g.awb.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
+    DrawRectangleLinesEx({g.awb.x + 452, g.awb.y + g.awb.height - 164, 144, 144}, 8, LIGHTGRAYALPHA)
     
     drawLogo(&g.logos.ol_logo, &g.logos.rl_logo, &g.logos.gl_logo, &g.logos.xl_logo)
     //stagger the start of each after the first
-    staggerStates(&g.logos.ol_logo, &g.logos.rl_logo)
-    staggerStates(&g.logos.rl_logo, &g.logos.gl_logo)
-    staggerStates(&g.logos.gl_logo, &g.logos.xl_logo)
+    staggerStatesMulti(&g.logos.ol_logo, &g.logos.rl_logo, &g.logos.gl_logo, &g.logos.xl_logo)
 
-    for &tt in g.awb_tooltip {
-      tt.active = isMouseInRect(mpos, tt.loc) && is_top_z ? true:false
+    for &tt in g.awb_tooltip { //draw tooltips last so they are ontop
+      tt.active = isMouseExclusive(mpos, tt.loc) && is_top_z ? true:false
       drawToolTip(tt)
     }
   }
@@ -254,7 +255,10 @@ drawCWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
   if .CWBCLOSE not_in g.states {
     mpos := GetMousePosition()
     is_top_z := g.zproc[len(g.zproc)-1] == drawCWB ? true:false
-    if bool(GuiWindowBox(g.cwb.r, "Keyboard Controls Legend")) && is_top_z { g.states += {.CWBCLOSE} }
+    if is_top_z { //draw a highlighted behind GuiWindowBox title if top
+      DrawRectangleRec({g.cwb.x, g.cwb.y, g.cwb.width, 24}, GRAYALPHA)
+    }
+    if bool(GuiWindowBox(g.cwb, "Keyboard Controls Legend")) && is_top_z { g.states += {.CWBCLOSE} }
     controls_text: [16][2]cstring = {
       {"Quit", "ESC"},
       {"Bounce Speed", "SHIFT + UP/DOWN"}, {"Rotate Angle +/-", "CTRL + UP/DOWN"}, {"Triangle Size", "ALT + UP/DOWN"},
@@ -263,13 +267,13 @@ drawCWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
       {"Toggle Rotate", "R"}, {"Pause Color", "P"}, {"Toggle Bounce", "B"},
       {"Toggle Wireframe", "W"}, {"Toggle Inverted", "I"}, {"Color Mode", "M"}
     }
-    g.cwb_tooltip[.CWBCLOSE].loc = {g.cwb.r.x + g.cwb.r.width - 21, g.cwb.r.y + 3, 17, 17}
+    g.cwb_tooltip[.CWBCLOSE].loc = {g.cwb.x + g.cwb.width - 21, g.cwb.y + 3, 17, 17}
     for cg, i in g.cwb_grid { 
       GuiLabel({cg.x, cg.y, cg.lw, cg.h}, controls_text[i][0])
       GuiLabel({cg.kx, cg.y, cg.kw, cg.h}, controls_text[i][1])
     }
-    for &tt in g.cwb_tooltip {
-      tt.active = isMouseInRect(mpos, tt.loc) && is_top_z ? true:false
+    for &tt in g.cwb_tooltip { //draw tooltips last so they are ontop
+      tt.active = isMouseExclusive(mpos, tt.loc) && is_top_z ? true:false
       drawToolTip(tt)
     }
   }
@@ -282,43 +286,46 @@ drawMWB :ZPROC: proc(g: ^GEntity, t: ^SEntity) { using rl
     mwmove := GetMouseWheelMove()
 
     is_top_z := g.zproc[len(g.zproc)-1] == drawMWB ? true:false
-    if bool(GuiWindowBox(g.mwb.r, fmt.ctprintf("Sierpinski 2D -- FPS: %i", GetFPS()))) && is_top_z { g.states += {.MWBCLOSE} }
+    if is_top_z { //draw a highlighted behind GuiWindowBox title if top
+      DrawRectangleRec({g.mwb.x, g.mwb.y, g.mwb.width, 24}, GRAYALPHA)
+    }
+    if bool(GuiWindowBox(g.mwb, fmt.ctprintf("Sierpinski 2D -- FPS: %i", GetFPS()))) && is_top_z { g.states += {.MWBCLOSE} }
 
     //title bar tooltips locations MWBCLOSE, TOGGLECTRLS and TOGGLEABOUT
-    g.mwb_tooltip[.MWBCLOSE].loc    = {g.mwb.r.x + g.mwb.r.width - 21, g.mwb.r.y + 3, 17, 17}
-    g.mwb_tooltip[.TOGGLECTRLS].loc = {g.mwb.r.x + g.mwb.r.width - 46, g.mwb.r.y + 3, 17, 17}
-    g.mwb_tooltip[.TOGGLEABOUT].loc = {g.mwb.r.x + g.mwb.r.width - 71, g.mwb.r.y + 3, 17, 17}
+    g.mwb_tooltip[.MWBCLOSE].loc    = {g.mwb.x + g.mwb.width - 21, g.mwb.y + 3, 17, 17}
+    g.mwb_tooltip[.TOGGLECTRLS].loc = {g.mwb.x + g.mwb.width - 46, g.mwb.y + 3, 17, 17}
+    g.mwb_tooltip[.TOGGLEABOUT].loc = {g.mwb.x + g.mwb.width - 71, g.mwb.y + 3, 17, 17}
 
     //activate titlebar tooltips
-    g.mwb_tooltip[.MWBCLOSE].active    = isMouseInRect(mpos, g.mwb_tooltip[.MWBCLOSE].loc)    && is_top_z ? true:false
-    g.mwb_tooltip[.TOGGLECTRLS].active = isMouseInRect(mpos, g.mwb_tooltip[.TOGGLECTRLS].loc) && is_top_z ? true:false
-    g.mwb_tooltip[.TOGGLEABOUT].active = isMouseInRect(mpos, g.mwb_tooltip[.TOGGLEABOUT].loc) && is_top_z ? true:false
+    g.mwb_tooltip[.MWBCLOSE].active    = isMouseExclusive(mpos, g.mwb_tooltip[.MWBCLOSE].loc)    && is_top_z ? true:false
+    g.mwb_tooltip[.TOGGLECTRLS].active = isMouseExclusive(mpos, g.mwb_tooltip[.TOGGLECTRLS].loc) && is_top_z ? true:false
+    g.mwb_tooltip[.TOGGLEABOUT].active = isMouseExclusive(mpos, g.mwb_tooltip[.TOGGLEABOUT].loc) && is_top_z ? true:false
 
     //title bar buttons CWB and AWB
-    if GuiButton({g.mwb.r.x + g.mwb.r.width - 46, g.mwb.r.y + 3, 18, 18}, "") && is_top_z {
+    if GuiButton({g.mwb.x + g.mwb.width - 46, g.mwb.y + 3, 18, 18}, "") && is_top_z {
       g.states ~= {.CWBCLOSE}
-      if is_top_z { g.cwb.v.xy = {g.mwb.r.x + g.mwb.r.width + 10, g.mwb.r.y} } //show controls next to mwb
+      if is_top_z { g.cwb.v.xy = {g.mwb.x + g.mwb.width + 10, g.mwb.y} } //show controls next to mwb
       updateCGrid(g)
     }
-    if isMouseInRect(mpos, {g.mwb.r.x + g.mwb.r.width - 46, g.mwb.r.y + 3, 17, 17}) {
-      GuiDrawIcon(.ICON_HELP, i32(g.mwb.r.x + g.mwb.r.width - 45), i32(g.mwb.r.y + 4), 1, BLACKALPHA)
+    if isMouseExclusive(mpos, {g.mwb.x + g.mwb.width - 46, g.mwb.y + 3, 17, 17}) {
+      GuiDrawIcon(.ICON_HELP, i32(g.mwb.x + g.mwb.width - 45), i32(g.mwb.y + 4), 1, BLACKALPHA)
     }
-    else { GuiDrawIcon(.ICON_HELP, i32(g.mwb.r.x + g.mwb.r.width - 45), i32(g.mwb.r.y + 4), 1, DARKGRAYALPHA) }
+    else { GuiDrawIcon(.ICON_HELP, i32(g.mwb.x + g.mwb.width - 45), i32(g.mwb.y + 4), 1, DARKGRAYALPHA) }
 
-    if GuiButton({g.mwb.r.x + g.mwb.r.width - 71, g.mwb.r.y + 3, 18, 18}, "") && is_top_z {
+    if GuiButton({g.mwb.x + g.mwb.width - 71, g.mwb.y + 3, 18, 18}, "") && is_top_z {
       g.states ~= {.AWBCLOSE}
     }
-    if isMouseInRect(mpos, {g.mwb.r.x + g.mwb.r.width - 71, g.mwb.r.y + 3, 17, 17}) {
-      GuiDrawIcon(.ICON_INFO, i32(g.mwb.r.x + g.mwb.r.width - 70), i32(g.mwb.r.y + 4), 1, BLACKALPHA)
+    if isMouseExclusive(mpos, {g.mwb.x + g.mwb.width - 71, g.mwb.y + 3, 17, 17}) {
+      GuiDrawIcon(.ICON_INFO, i32(g.mwb.x + g.mwb.width - 70), i32(g.mwb.y + 4), 1, BLACKALPHA)
     }
-    else { GuiDrawIcon(.ICON_INFO, i32(g.mwb.r.x + g.mwb.r.width - 70), i32(g.mwb.r.y + 4), 1, DARKGRAYALPHA) }
+    else { GuiDrawIcon(.ICON_INFO, i32(g.mwb.x + g.mwb.width - 70), i32(g.mwb.y + 4), 1, DARKGRAYALPHA) }
 
     #reverse for mg, i in g.mwb_grid { //draw resverse so dropdown is ontop of below controls
       tt: MWBToolTipMap
       label_rect := Rectangle{mg.x, mg.y, mg.lw, mg.h}
       data_rect  := Rectangle{mg.dx, mg.y, mg.dw, mg.h}
       ctrl_rect  := Rectangle{mg.cx, mg.y, mg.cw, mg.h}
-      mw_active  := is_top_z && isMouseInRect(mpos,ctrl_rect) && mwmove != 0 ? true:false
+      mw_active  := is_top_z && isMouseExclusive(mpos,ctrl_rect) && mwmove != 0 ? true:false
       dropdown_delay := .CMDROPDOWNACTIVE in g.states ? true:false //delay activation of controls drawn under dropdown
 
       switch i {
@@ -419,16 +426,16 @@ drawMWB :ZPROC: proc(g: ^GEntity, t: ^SEntity) { using rl
         }
       case 12..=21:
         tt = .RESERVED
-        if u8(i) - 12 == t.depth && g.mwb.r.height != mg.y + 28 - g.mwb.r.y { g.mwb.r.height = mg.y + 28 - g.mwb.r.y } //last active guy in the list updates window height
+        if u8(i) - 12 == t.depth && g.mwb.height != mg.y + 28 - g.mwb.y { g.mwb.height = mg.y + 28 - g.mwb.y } //last active guy in the list updates window height
         if u8(i) - 12 <= t.depth { //color per depth to max_depth
           GuiLabel({mg.x, mg.y, 275, mg.h}, fmt.ctprintf("RGB %i: %s", i - 12, ctohex(t.color.depth[i - 12].current)))
           GuiColorPanel({mg.cx, mg.y, mg.cw, mg.h},"", &t.color.depth[i - 12].current)
         }
       }
-      if tt != .RESERVED { //draw tooltips for each case
+      if tt != .RESERVED { //draw tooltips for each case last so they are ontop
         g.mwb_tooltip[tt].loc = ctrl_rect
-        g.mwb_tooltip[tt].offset = {g.mwb.r.x + g.mwb.r.width - mpos.x, 0}
-        g.mwb_tooltip[tt].active = isMouseInRect(mpos, g.mwb_tooltip[tt].loc) && is_top_z ? true:false
+        g.mwb_tooltip[tt].offset = {g.mwb.x + g.mwb.width - mpos.x, 0}
+        g.mwb_tooltip[tt].active = isMouseExclusive(mpos, g.mwb_tooltip[tt].loc) && is_top_z ? true:false
         drawToolTip(g.mwb_tooltip[tt])
       }
     }
