@@ -42,7 +42,7 @@ printUsage :: proc() { using fmt; using time
   printfln("%-15s%-4s%-43s%s", "-rotateangle",   "-a", "enables rotation and sets speed/direction", "range: float = -6.0 : 6.0")
   printfln("%-15s%-4s%-43s%s", "-bouncespeed",   "-b", "enables bounce and sets speed", "range: float = 0.0 : 10.0")
   printfln("%-15s%-4s%-43s%s", "-colormode",     "-m", "sets color mode", "default = same - values: same, mixed, or grad")
-  printfln("%-15s%-4s%-43s%s", "-legend",        "-c", "enables/disables display of controls info", "default = true")
+  printfln("%-15s%-4s%-43s%s", "-legend",        "-l", "enables/disables display of controls info", "default = true")
   printfln("%-15s%-4s%-43s%s", "-ui",            "-u", "enables/disables display of main ui", "default = true")
   printfln("%-15s%-4s%-43s%s", "-wireframe",     "-w", "enables/disables drawing solid", "default = true")
   printfln("%-15s%-4s%-43s%s", "-inverted",      "-i", "enables/disables drawing inverted", "default = true")
@@ -224,4 +224,5 @@ initGuiStyle :: proc() { using rl
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_COLOR_PRESSED), ctoi32(BLACKALPHA))
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_COLOR_DISABLED), ctoi32(BLACKALPHA))
   GuiSetStyle(.TOGGLE, i32(GCP.TEXT_ALIGNMENT), 1)
+
 }
