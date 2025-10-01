@@ -13,9 +13,9 @@ The purpose was to learn Odin, Raylib, Raygui together, while doing something si
 # Command LIne Options:
 - -triangle size,&nbsp;-s, size in height of triangle range: float = 81.0 : screen height - 81.0
 - -maxdepth,&nbsp;&nbsp;&nbsp;&nbsp;-d, sierpinski depth range: int = 0 : 9
-- -colorspeed,    -c, color change speed, range: float = 0.0 : 1.0
-- -rotateangle,   -a, enables rotation and sets speed/direction, range: float = -6.0 : 6.0
-- -bouncespeed,   -b, enables bounce and sets speed, range: float = 0.0 : 10.0
+- -colorspeed,&nbsp;&nbsp;&nbsp;&nbsp;-c, color change speed, range: float = 0.0 : 1.0
+- -rotateangle,&nbsp;&nbsp;&nbsp;&nbsp;-a, enables rotation and sets speed/direction, range: float = -6.0 : 6.0
+- -bouncespeed,&nbsp;&nbsp;&nbsp;&nbsp;-b, enables bounce and sets speed, range: float = 0.0 : 10.0
 - -colormode,     -m, sets color mode, default = same - values: same, mixed, or grad
 - -legend,        -l, enables/disables display of controls legend, default = true
 - -ui,            -u, enables/disables display of main ui, default = true
