@@ -5,7 +5,7 @@ import rl "vendor:raylib"
 
 Triangle :: [3]rl.Vector2
 
-SEntity :: struct {
+TEntity :: struct {
   v:      Triangle,
   depth:  u8,
   height: f32,
@@ -47,7 +47,7 @@ SStates :: enum {
 }
 
 //create initial triangle with relevant defaults
-createTriangle :: proc() -> (triangle: SEntity) {
+createTriangle :: proc() -> (triangle: TEntity) {
   triangle.depth = 4
   triangle.height = 600
   triangle.color.mode.e = .GRAD
@@ -59,7 +59,7 @@ createTriangle :: proc() -> (triangle: SEntity) {
 }
 
 //color mode control
-lerpColor :: proc(t: ^SEntity) { using rl
+lerpColor :: proc(t: ^TEntity) { using rl
   if .PAUSECOLOR not_in t.states {
     t.color.lerp_time += GetFrameTime() * t.color.speed
     switch t.color.mode.e {
@@ -92,10 +92,10 @@ lerpColor :: proc(t: ^SEntity) { using rl
 }
 
 //overload - choose inverted or standard
-sierpinski :: proc(t: ^SEntity) { if .INVERTED in t.states { sierpinskiInverted(t, t.v, 0) } else { sierpinskiStandard(t, t.v, 0) } }
+sierpinski :: proc(t: ^TEntity) { if .INVERTED in t.states { sierpinskiInverted(t, t.v, 0) } else { sierpinskiStandard(t, t.v, 0) } }
 
 //inverted draws the inner (center) upside-down triangle at each depth, with a few special cases for flavor
-sierpinskiInverted :: proc(t: ^SEntity, s: Triangle, curr_depth: u8) { using rl
+sierpinskiInverted :: proc(t: ^TEntity, s: Triangle, curr_depth: u8) { using rl
   color: = t.color.depth[curr_depth].current
 
   //special cases without inverted vectors
@@ -115,7 +115,7 @@ sierpinskiInverted :: proc(t: ^SEntity, s: Triangle, curr_depth: u8) { using rl
 }
 
 //standard method - draw top, left, and right 3rds at each depth with some exceptions for flavor
-sierpinskiStandard :: proc(t: ^SEntity, s: Triangle, curr_depth: u8) { using rl
+sierpinskiStandard :: proc(t: ^TEntity, s: Triangle, curr_depth: u8) { using rl
   //not inverted - draw from 0 to t.depth
   color: = t.color.depth[curr_depth].current
 
@@ -141,7 +141,7 @@ sierpinskiStandard :: proc(t: ^SEntity, s: Triangle, curr_depth: u8) { using rl
 }
 
 //rotate about the centroid (center of mass, not half of height)
-rotateTriangle :: proc(t: ^SEntity) { using rl
+rotateTriangle :: proc(t: ^TEntity) { using rl
   if .ROTATE in t.states {
     centroid := (t.v[0] + t.v[1] + t.v[2]) / 3
     t.v = {
@@ -153,7 +153,7 @@ rotateTriangle :: proc(t: ^SEntity) { using rl
 }
 
 //using a lazy bounce, since 2 vectors can be offscreen simultaniously - no physics :(
-bounceTriangle :: proc(t: ^SEntity) { using rl
+bounceTriangle :: proc(t: ^TEntity) { using rl
   if .BOUNCE in t.states {
     s, w, h := t.move.speed, t.screen.x, t.screen.y - 4
 
@@ -184,7 +184,7 @@ bounceTriangle :: proc(t: ^SEntity) { using rl
 }
 
 //resize triangle based on factor of height
-resizeTriangle :: proc(t: ^SEntity, factor: f32) { using math
+resizeTriangle :: proc(t: ^TEntity, factor: f32) { using math
   resized: Triangle
   centroid := (t.v[0] + t.v[1] + t.v[2]) / 3
   resized[0] = centroid + ((t.v[0] - centroid) * factor)

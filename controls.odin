@@ -3,35 +3,32 @@ package sierpinski
 import rl "vendor:raylib"
 
 //user input (mouse and keyboard) - with some special cases for gui windows
-getUserInput :: proc(t: ^SEntity, g: ^GEntity) { using rl
+getUserInput :: proc(t: ^TEntity, g: ^GEntity) { using rl
   //Mouse
   mpos := GetMousePosition()
   //hide curser if all gui(s) are closed - show if they are enabled again by key press
   if .MWBCLOSE in g.states && .CWBCLOSE in g.states && .AWBCLOSE in g.states { HideCursor() } else { ShowCursor() }
 
    //move windows and set z-order under some sane conditions
-  if IsMouseButtonPressed(.LEFT) { //check mouse for move
-    //set z-order if mouse clicks in window and but is not under another window
-    if isMouseExclusive(mpos, g.mwb, g.cwb, g.awb) &&
-      .AWBMOVE not_in g.states && .CWBMOVE not_in g.states { zOrderTop(g, drawMWB) } //z-order check and set
-      if isMouseExclusive(mpos, g.cwb, g.mwb, g.awb) &&
-      .AWBMOVE not_in g.states && .MWBMOVE not_in g.states { zOrderTop(g, drawCWB) } //z-order check and set
-    if isMouseExclusive(mpos, g.awb, g.mwb, g.cwb) &&
-      .CWBMOVE not_in g.states && .MWBMOVE not_in g.states { zOrderTop(g, drawAWB) } //z-order check and set
+  if IsMouseButtonPressed(.LEFT) {
+    //set z-order if mouse clicks in window and is not under another window
+    if isMouseExclusive(mpos, g.mwb, g.cwb, g.awb) { zOrderTop(g, drawMWB) } //z-order check and set
+    if isMouseExclusive(mpos, g.cwb, g.mwb, g.awb) { zOrderTop(g, drawCWB) } //z-order check and set
+    if isMouseExclusive(mpos, g.awb, g.mwb, g.cwb) { zOrderTop(g, drawAWB) } //z-order check and set
     
     //check for and enable window move using title bar - excludes titlebar button rects
     top_z := g.zproc[len(g.zproc)-1]
     if isMouseExclusive(mpos, {g.mwb.x, g.mwb.y + 2, g.mwb.width, 24},
-        g.mwb_tooltip[.MWBCLOSE].loc,
-        g.mwb_tooltip[.TOGGLECTRLS].loc,
-        g.mwb_tooltip[.TOGGLEABOUT].loc) &&
+      g.mwb_tooltip[.MWBCLOSE].loc,
+      g.mwb_tooltip[.TOGGLECTRLS].loc,
+      g.mwb_tooltip[.TOGGLEABOUT].loc) &&
       top_z == drawMWB { g.states += {.MWBMOVE} }
     if isMouseExclusive(mpos, {g.cwb.x, g.cwb.y + 2, g.cwb.width, 24},
-        g.cwb_tooltip[.CWBCLOSE].loc,
-        g.cwb_tooltip[.CWBCLOSE].loc) &&
+      g.cwb_tooltip[.CWBCLOSE].loc,
+      g.cwb_tooltip[.CWBCLOSE].loc) &&
       top_z == drawCWB { g.states += {.CWBMOVE} }
     if isMouseExclusive(mpos, {g.awb.x, g.awb.y + 2, g.awb.width, 24},
-        g.awb_tooltip[.AWBCLOSE].loc) && top_z == drawAWB { g.states += {.AWBMOVE} }
+      g.awb_tooltip[.AWBCLOSE].loc) && top_z == drawAWB { g.states += {.AWBMOVE} }
   }
   
   if .MWBMOVE in g.states { g.mwb.v.xy += GetMouseDelta(); updateMGrid(g) } //move main window box

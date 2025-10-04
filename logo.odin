@@ -17,7 +17,7 @@ Logo :: struct {
 }
 
 //reset any number of logos
-ResetLogo :: proc(logos: ..^Logo) { if len(logos) > 0 { for logo in logos {logo.state = 0} } }
+ResetLogo :: proc(logos: ..^Logo) { if logos != nil { for logo in logos {logo.state = 0} } }
 
 //use for staggering 1 trail logo after a lead logo for a nice effect
 staggerStates :: proc(lead: ^Logo, trail: ^Logo ) {
@@ -26,7 +26,7 @@ staggerStates :: proc(lead: ^Logo, trail: ^Logo ) {
 
 //allow for a list of logos to stagger 1 after the other
 staggerStatesMulti :: proc(lead: ^Logo, trail: ..^Logo ) {
-  if len(trail) > 0 {
+  if trail != nil {
     if lead.state <= 2 { for t in trail {t.state = 1} }
     else if trail[0].state == 1 { trail[0].state = 2 }
     if len(trail) > 1 {
@@ -39,7 +39,7 @@ staggerStatesMulti :: proc(lead: ^Logo, trail: ..^Logo ) {
 
 //draw logo(s) - proc pointers used to save space on repeated copies of the same draw procedure in each case
 drawLogo :: proc (logos: ..^Logo) { using rl
-  if len(logos) > 0 {
+  if logos != nil {
     for logo in logos {
       anime: [8]proc (logo: Logo) = {
         proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y, logo.s, logo.s}, logo.bg) }, //background
@@ -49,7 +49,7 @@ drawLogo :: proc (logos: ..^Logo) { using rl
         proc(logo: Logo) { DrawRectangleRec({logo.x + logo.s - (logo.s/16), logo.y, logo.s/16, logo.c.b}, logo.fg) }, //right
         proc(logo: Logo) { DrawRectangleRec({logo.x, logo.y + logo.s - (logo.s/16), logo.c.b , logo.s/16}, logo.fg) }, //bottom
         proc(logo: Logo) { DrawTextEx(logo.font, sub(logo), {logo.x, logo.y} + logo.s - txt(logo) - (2 * logo.s/16), logo.fs, 4, logo.fg) },
-        proc(logo: Logo) { if logo.glyph != {} { logo.glyph(logo) } }
+        proc(logo: Logo) { if logo.glyph != nil { logo.glyph(logo) } }
       }
       
       //font scaling for when font size is not set

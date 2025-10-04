@@ -36,8 +36,9 @@ RectVectUnion :: struct #raw_union {
   v: rl.Vector4,
 }
 
-//simple zorder - proc pointers and array - fifo
-ZPROC :: #type proc(g: ^GEntity, t: ^SEntity)
+//simple zorder - no cascading only top - proc pointers for array use - fifo
+//t is passed only so the main gui has axcess to t's data for configuration
+ZPROC :: #type proc(g: ^GEntity, t: ^TEntity)
 
 //x, y, labelwidth, datax, datawidth, ctrlx, ctrlwidth, height
 MGrid :: struct {x,y,lw,dx,dw,cx,cw,h: f32}
@@ -194,10 +195,10 @@ zOrderTop :: proc(g: ^GEntity, p: ZPROC) {
 }
 
 //draw guis by z-order - last in list is on top
-drawZOrder :: proc(g: ^GEntity, t: ^SEntity) { for p in g.zproc { p(g, t) } }
+drawZOrder :: proc(g: ^GEntity, t: ^TEntity) { for p in g.zproc { p(g, t) } }
 
 //about window
-drawAWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
+drawAWB :ZPROC: proc(g: ^GEntity, _: ^TEntity) { using rl
   if .AWBCLOSE not_in g.states {
     mpos := GetMousePosition()
     if g.awb.v.xy == {0,0} { //initial location, afterwards let mouse control move window
@@ -251,7 +252,7 @@ drawAWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
 }
 
 //controls/legend window
-drawCWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
+drawCWB :ZPROC: proc(g: ^GEntity, _: ^TEntity) { using rl
   if .CWBCLOSE not_in g.states {
     mpos := GetMousePosition()
     is_top_z := g.zproc[len(g.zproc)-1] == drawCWB ? true:false
@@ -280,10 +281,15 @@ drawCWB :ZPROC: proc(g: ^GEntity, _: ^SEntity) { using rl
 }
 
 //main ui window
-drawMWB :ZPROC: proc(g: ^GEntity, t: ^SEntity) { using rl
+drawMWB :ZPROC: proc(g: ^GEntity, t: ^TEntity) { using rl
   if .MWBCLOSE not_in g.states {
     mpos   := GetMousePosition()
     mwmove := GetMouseWheelMove()
+
+    //used for on the fly rgb tooltips - found in last case for color picker panels
+    rgb_tt: ToolTip
+    rgb_tt.style = ttGetDefaultStyle()
+    //rgb_tt.anchor = .CENTERLEFT
 
     is_top_z := g.zproc[len(g.zproc)-1] == drawMWB ? true:false
     if is_top_z { //draw a highlighted behind GuiWindowBox title if top
@@ -426,12 +432,21 @@ drawMWB :ZPROC: proc(g: ^GEntity, t: ^SEntity) { using rl
         }
       case 12..=21:
         tt = .RESERVED
+        color := t.color.depth[i - 12].current
+        rgb_tt = { //create on the fly tooltip for rgb color panel
+          text = fmt.ctprintf("R: %i\nG: %i\nB: %i", color.r, color.g, color.b),
+          active = isMouseExclusive(mpos, {mg.cx, mg.y, mg.cw, mg.h}) && is_top_z && u8(i) - 12 <= t.depth ? true:false,
+          loc = {mg.cx, mg.y, mg.cw, mg.h},
+          offset = {g.mwb.x + g.mwb.width - mpos.x, 0},
+          anchor = .CENTERLEFT,
+        }
         if u8(i) - 12 == t.depth && g.mwb.height != mg.y + 28 - g.mwb.y { g.mwb.height = mg.y + 28 - g.mwb.y } //last active guy in the list updates window height
         if u8(i) - 12 <= t.depth { //color per depth to max_depth
           GuiLabel({mg.x, mg.y, 275, mg.h}, fmt.ctprintf("RGB %i: %s", i - 12, ctohex(t.color.depth[i - 12].current)))
           GuiColorPanel({mg.cx, mg.y, mg.cw, mg.h},"", &t.color.depth[i - 12].current)
         }
       }
+      drawToolTip(rgb_tt) //draw on the fly rgb tooltips
       if tt != .RESERVED { //draw tooltips for each case last so they are ontop
         g.mwb_tooltip[tt].loc = ctrl_rect
         g.mwb_tooltip[tt].offset = {g.mwb.x + g.mwb.width - mpos.x, 0}

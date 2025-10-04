@@ -4,8 +4,8 @@ import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 
-round :: math.round
-sqrt  :: math.sqrt
+@static round :: math.round
+@static sqrt  :: math.sqrt
 
 //used for drawing a circle about a radius - the odin logo
 cos_sin :: proc(a: f32) -> [2]f32 { return {math.cos(rl.DEG2RAD*a), math.sin(rl.DEG2RAD*a)} }
@@ -17,17 +17,18 @@ getRandomColor :: proc() -> rl.Color { using rl
 
 //check if mouse is in an active location given by rect - ..any exclude_rects optional
 isMouseExclusive :: proc(pos: [2]f32, include: rl.Rectangle, exclude: ..rl.Rectangle) -> (isexclusive: bool) {
-  if len(exclude) > 0 { //check for exclusivity if ..any of not_rects are provided
+  if exclude != nil { //check for exclusivity if ..any of exclude rects are provided
     for ex in exclude {
       if pos.x >= ex.x &&
          pos.y >= ex.y &&
          pos.x <= ex.x + ex.width &&
          pos.y <= ex.y + ex.height {
          isexclusive = false
+         return
       }
     }
   }
-  //if not false from above, return true if in active inclusive_rect
+  //if not false from above, return true if pos is in include rect
   if pos.x >= include.x &&
      pos.y >= include.y &&
      pos.x <= include.x + include.width &&

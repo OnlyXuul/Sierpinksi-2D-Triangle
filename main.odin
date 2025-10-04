@@ -7,20 +7,22 @@ import "core:strconv"
 import rl "vendor:raylib"
 
 main :: proc() { using rl
-  gui      := createGuis()
-  triangle := createTriangle()
-  help := getArgs(&triangle, &gui)
+  gui      := createGuis() //gui defaults
+  triangle := createTriangle() //triangle defaults
+  help     := getArgs(&triangle, &gui) //get cli args
   if !help {
     init(&triangle) //all inits - screen, triangle, color, style
     defer CloseWindow()
     for !WindowShouldClose() {
+      //all non-drawing stuff here
       getUserInput(&triangle, &gui) //more responsive before draw
       rotateTriangle(&triangle)
       bounceTriangle(&triangle)
-      lerpColor(&triangle) 
+      lerpColor(&triangle)
+      //all drawing stuff here
       BeginDrawing(); defer EndDrawing()
       ClearBackground(BLACK)
-      sierpinski(&triangle)       //recurse to max_depth
+      sierpinski(&triangle)       //recurse and draw to depth
       drawZOrder(&gui, &triangle) //draw gui(s) if enabled
     }
   }
@@ -48,7 +50,7 @@ printUsage :: proc() { using fmt; using time
   printfln("%-15s%-4s%-43s%s", "-inverted",      "-i", "enables/disables drawing inverted", "default = true")
 }
 
-getArgs :: proc(t: ^SEntity, g: ^GEntity) -> (help: bool) { using strconv; using os
+getArgs :: proc(t: ^TEntity, g: ^GEntity) -> (help: bool) { using strconv; using os
   for arg, idx in args {
     if arg == "-help" || arg == "-h" { printUsage(); return true }
     if idx + 1 < len(args) {
@@ -96,7 +98,7 @@ getArgs :: proc(t: ^SEntity, g: ^GEntity) -> (help: bool) { using strconv; using
 }
 
 //all the inits
-init :: proc(t: ^SEntity) { initScreen(); initTriangle(t); initColor(t); initGuiStyle() }
+init :: proc(t: ^TEntity) { initScreen(); initTriangle(t); initColor(t); initGuiStyle() }
 
 //create window
 initScreen :: proc() { using rl
@@ -107,7 +109,7 @@ initScreen :: proc() { using rl
 
 // h = ( s * sqrt(3) ) / 2 || s = ( 2 * h ) / sqrt(3) -- 2 from top and bottom
 //reusable init for when triangle is reset by user
-initTriangle :: proc(t: ^SEntity) { using rl
+initTriangle :: proc(t: ^TEntity) { using rl
   t.screen = {f32(GetRenderWidth()), f32(GetRenderHeight())}
   if t.height == 0 {t.height = t.screen.y - 81 }
   if t.height > t.screen.y - 81 { t.height = t.screen.y - 81}
@@ -120,7 +122,7 @@ initTriangle :: proc(t: ^SEntity) { using rl
 }
 
 //reusable init for when color mode is changed by user
-initColor :: proc(t: ^SEntity) { using rl
+initColor :: proc(t: ^TEntity) { using rl
   t.color.options = "SAME;MIXED;GRAD"
   switch t.color.mode.e {
   case .SAME:
