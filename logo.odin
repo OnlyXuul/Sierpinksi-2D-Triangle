@@ -2,7 +2,11 @@ package sierpinski
 
 import rl "vendor:raylib"
 
-LogoGlyph :: #type proc (l: Logo)
+///////////////////////////////////////////////////////////////////////////////
+// Logo structs and procedures
+///////////////////////////////////////////////////////////////////////////////
+
+Logo_Glyph :: #type proc (l: Logo)
 
 Logo :: struct {
   using xys: struct {x, y, s: f32 }, //square x, y, s (size) - logo.s/16 is used to scale width of animated lines
@@ -12,20 +16,15 @@ Logo :: struct {
   bg:       rl.Color,         //background color
   fg:       rl.Color,         //foreground color
   state:    u8,               //starts at 0 - set state to 0 before redrawing
-  glyph:    LogoGlyph,        //glyph proc drawn at end - make relative to logo dimensions - leave as {} if not using
+  glyph:    Logo_Glyph,        //glyph proc drawn at end - make relative to logo dimensions - leave as {} if not using
   c: struct { f, t, b: f32 }, //counters: frame, top(and left), bottom(and right), leave 0
 }
 
 //reset any number of logos
-ResetLogo :: proc(logos: ..^Logo) { if logos != nil { for logo in logos {logo.state = 0} } }
-
-//use for staggering 1 trail logo after a lead logo for a nice effect
-staggerStates :: proc(lead: ^Logo, trail: ^Logo ) {
-  if lead.state <= 2 { trail.state = 1} else if trail.state == 1 { trail.state = 2 }
-}
+reset_logo :: proc(logos: ..^Logo) { if logos != nil { for logo in logos {logo.state = 0} } }
 
 //allow for a list of logos to stagger 1 after the other
-staggerStatesMulti :: proc(lead: ^Logo, trail: ..^Logo ) {
+stagger_logo_state :: proc(lead: ^Logo, trail: ..^Logo ) {
   if trail != nil {
     if lead.state <= 2 { for t in trail {t.state = 1} }
     else if trail[0].state == 1 { trail[0].state = 2 }
@@ -38,7 +37,7 @@ staggerStatesMulti :: proc(lead: ^Logo, trail: ..^Logo ) {
 }
 
 //draw logo(s) - proc pointers used to save space on repeated copies of the same draw procedure in each case
-drawLogo :: proc (logos: ..^Logo) { using rl
+draw_logo :: proc (logos: ..^Logo) { using rl
   if logos != nil {
     for logo in logos {
       anime: [8]proc (logo: Logo) = {
@@ -91,8 +90,12 @@ drawLogo :: proc (logos: ..^Logo) { using rl
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Glyph procedures
+///////////////////////////////////////////////////////////////////////////////
+
 //custom odin logo
-ol_glyph :LogoGlyph: proc(logo: Logo) { using rl
+ol_glyph :Logo_Glyph: proc(logo: Logo) { using rl
   vec:    [4]Vector2
   thick:  f32 = clamp(round(logo.s/64), 1, 4)
   radius: f32 = logo.s/8
@@ -107,7 +110,7 @@ ol_glyph :LogoGlyph: proc(logo: Logo) { using rl
 }
 
 //custom raylib logo
-rl_glyph :LogoGlyph: proc(logo: Logo) {
+rl_glyph :Logo_Glyph: proc(logo: Logo) {
   rl.DrawTriangle(
     {logo.x, logo.y} + {logo.s, 0} + {-2, 2} * logo.s/16,
     {logo.x, logo.y} + {logo.s, 0} + {-6, 2} * logo.s/16,
@@ -115,7 +118,7 @@ rl_glyph :LogoGlyph: proc(logo: Logo) {
 }
 
 //custom raygui logo
-gl_glyph :LogoGlyph: proc(logo: Logo) {
+gl_glyph :Logo_Glyph: proc(logo: Logo) {
   psize:     f32 = clamp(round(logo.s/64), 1, 4)
   scale:     f32 = ((psize*16)/16)*16
   wspace: [2]f32 = {1,2}
@@ -127,7 +130,7 @@ gl_glyph :LogoGlyph: proc(logo: Logo) {
 }
 
 //custom xuul logo
-xl_glyph :LogoGlyph: proc(logo: Logo) {
+xl_glyph :Logo_Glyph: proc(logo: Logo) {
   psize:     f32 = clamp(round(logo.s/64), 1, 4)
   scale:     f32 = ((psize*16)/16)*16
   wspace: [2]f32 = {2,1} 

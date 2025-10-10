@@ -6,37 +6,46 @@ import "core:time"
 import "core:strconv"
 import rl "vendor:raylib"
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Main loop driver
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 main :: proc() { using rl
-  gui      := createGuis() //gui defaults
-  triangle := createTriangle() //triangle defaults
-  help     := getArgs(&triangle, &gui) //get cli args
+  gui      := create_gui_entity()       //gui default struct
+  triangle := create_triangle_entity()  //triangle default struct
+  help     := get_args(&triangle, &gui) //get cli args
   if !help {
     init(&triangle) //all inits - screen, triangle, color, style
     defer CloseWindow()
     for !WindowShouldClose() {
       //all non-drawing stuff here
-      getUserInput(&triangle, &gui) //more responsive before draw
-      rotateTriangle(&triangle)
-      bounceTriangle(&triangle)
-      lerpColor(&triangle)
+      get_user_input(&triangle, &gui) //more responsive outside draw
+      rotate_triangle(&triangle)
+      move_triangle(&triangle)
+      lerp_color(&triangle)
       //all drawing stuff here
       BeginDrawing(); defer EndDrawing()
       ClearBackground(BLACK)
-      sierpinski(&triangle)       //recurse and draw to depth
-      drawZOrder(&gui, &triangle) //draw gui(s) if enabled
+      sierpinski(&triangle)            //recurse and draw to depth
+      draw_gui_zorder(&gui, &triangle) //draw gui(s) if enabled
+      free_all(context.temp_allocator) //keep temp_allocator trimmed each frame (fmt.ctprintf uses this)
     }
   }
 }
 
-printUsage :: proc() { using fmt; using time
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Command line input procedures
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+print_usage :: proc() { using fmt; using time
   buf: [MIN_YYYY_DATE_LEN]u8
   printfln("%v by xuul the terror dog\n", ODIN_BUILD_PROJECT_NAME)
-  printfln("%-16s%v",   "compile date:", to_string_yyyy_mm_dd(now(), buf[:]))
-  printfln("%-16s%v",   "odin version:", ODIN_VERSION)
-  printfln("%-16s%v",   "raylib version:", rl.VERSION)
-  printfln("%-16s%v\n", "raygui version:", rl.RAYGUI_VERSION)
+  printfln("%-16s%v",   "Compile date:",   to_string_yyyy_mm_dd(now(), buf[:]))
+  printfln("%-16s%v",   "Odin version:",   ODIN_VERSION)
+  printfln("%-16s%v",   "Raylib version:", rl.VERSION)
+  printfln("%-16s%v\n", "Raygui version:", rl.RAYGUI_VERSION)
 
-  println("Only values within default ranges will be set, else defaults are used")
+  println("Only values within default ranges will be set, else internal defaults are used:\n")
   printfln("%-15s%-4s%s", "-help", "-h", "prints this help message")
   printfln("%-15s%-4s%-43s%s", "-triangle size", "-s", "size in height of triangle", "range: float = 81.0 : screen height - 81.0")
   printfln("%-15s%-4s%-43s%s", "-depth",         "-d", "sierpinski depth", "range: int = 0 : 9")
@@ -46,93 +55,93 @@ printUsage :: proc() { using fmt; using time
   printfln("%-15s%-4s%-43s%s", "-colormode",     "-m", "sets color mode", "default = same - values: same, mixed, or grad")
   printfln("%-15s%-4s%-43s%s", "-legend",        "-l", "enables/disables display of controls info", "default = true")
   printfln("%-15s%-4s%-43s%s", "-ui",            "-u", "enables/disables display of main ui", "default = true")
-  printfln("%-15s%-4s%-43s%s", "-wireframe",     "-w", "enables/disables drawing solid", "default = true")
-  printfln("%-15s%-4s%-43s%s", "-inverted",      "-i", "enables/disables drawing inverted", "default = true")
+  printfln("%-15s%-4s%-43s%s", "-wireframe",     "-w", "enables/disables drawing solid", "default = false")
+  printfln("%-15s%-4s%-43s%s", "-inverted",      "-i", "enables/disables drawing inverted", "default = false")
 }
 
-getArgs :: proc(t: ^TEntity, g: ^GEntity) -> (help: bool) { using strconv; using os
+get_args :: proc(t: ^Triangle_Entity, g: ^Gui_Entity) -> (help: bool) { using strconv; using os
   for arg, idx in args {
-    if arg == "-help" || arg == "-h" { printUsage(); return true }
+    if arg == "-help" || arg == "-h" { print_usage(); return true }
     if idx + 1 < len(args) {
       switch arg { //only set the value if inside range limits
       case "-trianglesize", "-s":
         input := f32(atoi(args[idx+1]))
-        if input >= 81 || input <= t.screen.y - 81 { t.height = input }
+        if input >= 81 || input <= f32(rl.GetRenderHeight()) - 81 { t.height = input }
       case "-depth", "-d":
         input := u8(atoi(args[idx+1]))
         if input >= 0 || input <= 9 { t.depth = input }
       case "-colorspeed", "-c":
         input := f32(atof(args[idx+1]))
-        if input >= 0.0 || input <= 1.0 { t.color.speed = input }
+        if input >= 0.000 || input <= 1.000 { t.color_speed = input }
       case "-rotateangle", "-a":
         input := f32(atof(args[idx+1]))
-        if input >= -6.0 || input <= 6.0 { t.move.a_o_r = input; t.states += {.ROTATE} }
+        if input >= -6.000 || input <= 6.000 { t.move_aor = input; t.flags += {.ROTATE} }
       case "-bouncespeed", "-b":
         input := f32(atof(args[idx+1]))
-        if input >= 0.0 || input <= 10.0 { t.move.speed = input; t.states += {.BOUNCE} }
+        if input >= 0.000 || input <= 10.000 { t.move_speed = input; t.flags += {.BOUNCE} }
       case "-colormode", "-m":
         input := args[idx+1]
-        if input == "same"  { t.color.mode.e = .SAME }
-        if input == "mixed" { t.color.mode.e = .MIXED }
-        if input == "grad"  { t.color.mode.e = .GRAD }
+        if input == "same"  { t.color_mode = .SAME }
+        if input == "mixed" { t.color_mode = .MIXED }
+        if input == "grad"  { t.color_mode = .GRAD }
       case "-legend", "-l":
         input := args[idx+1]
-        if input == "true"  { g.states -= {.CWBCLOSE} }
-        if input == "false" { g.states += {.CWBCLOSE} }
+        if input == "true"  { g.legend.flags -= {.CLOSE} }
+        if input == "false" { g.legend.flags += {.CLOSE} }
       case "-ui", "-u":
         input := args[idx+1]
-        if input == "true"  { g.states -= {.MWBCLOSE} }
-        if input == "false" { g.states += {.MWBCLOSE} }
+        if input == "true"  { g.main.flags -= {.CLOSE} }
+        if input == "false" { g.main.flags += {.CLOSE} }
       case "-wireframe", "-w":
         input := args[idx+1]
-        if input == "true"  { t.states += {.WIREFRAME} }
-        if input == "false" { t.states -= {.WIREFRAME} }
+        if input == "true"  { t.flags += {.WIREFRAME} }
+        if input == "false" { t.flags -= {.WIREFRAME} }
       case "-inverted", "-i":
         input := args[idx+1]
-        if input == "true"  { t.states += {.INVERTED} }
-        if input == "false" { t.states -= {.INVERTED} }
+        if input == "true"  { t.flags += {.INVERTED} }
+        if input == "false" { t.flags -= {.INVERTED} }
       }
     }
   }
   return false
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Initialization procedures to execute before first drawing loop
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 //all the inits
-init :: proc(t: ^TEntity) { initScreen(); initTriangle(t); initColor(t); initGuiStyle() }
+init :: proc(t: ^Triangle_Entity) { init_screen(); init_triangle(t); init_color(t); init_gui_style() }
 
 //create window
-initScreen :: proc() { using rl
+init_screen :: proc() { using rl
   SetConfigFlags({.FULLSCREEN_MODE, .MSAA_4X_HINT})
   InitWindow(0, 0, "Sierpinski 2D")
   SetTargetFPS(60)
 }
 
 // h = ( s * sqrt(3) ) / 2 || s = ( 2 * h ) / sqrt(3) -- 2 from top and bottom
-//reusable init for when triangle is reset by user
-initTriangle :: proc(t: ^TEntity) { using rl
-  t.screen = {f32(GetRenderWidth()), f32(GetRenderHeight())}
-  if t.height == 0 {t.height = t.screen.y - 81 }
-  if t.height > t.screen.y - 81 { t.height = t.screen.y - 81}
-  if t.height < 81 { t.height = 81 }
-  t.v = {
-    {(t.screen.x / 2), (t.screen.y - t.height) / 2}, //v1
-    {(t.screen.x / 2) - ((t.height) / sqrt(f32(3))), t.height + ((t.screen.y - t.height) / 2)}, //v2
-    {(t.screen.x / 2) + ((t.height) / sqrt(f32(3))), t.height + ((t.screen.y - t.height) / 2)}  //v3
-  }
+// reusable init for when triangle is reset by user in gui or keyboard controls
+init_triangle :: proc(t: ^Triangle_Entity) { using rl
+  screen_width, screen_height := f32(GetRenderWidth()), f32(GetRenderHeight())
+  t.height = clamp(t.height, 81, screen_height - 81)
+  t.v0 = {(screen_width / 2), (screen_height - t.height) / 2}
+  t.v1 = {(screen_width / 2) - ((t.height) / sqrt(f32(3))), t.height + ((screen_height - t.height) / 2)}
+  t.v2 = {(screen_width / 2) + ((t.height) / sqrt(f32(3))), t.height + ((screen_height - t.height) / 2)}
 }
 
-//reusable init for when color mode is changed by user
-initColor :: proc(t: ^TEntity) { using rl
-  t.color.options = "SAME;MIXED;GRAD"
-  switch t.color.mode.e {
+// reusable init for when color mode is changed by user in gui or keyboard controls
+init_color :: proc(t: ^Triangle_Entity) { using rl
+  t.color_options = "SAME;MIXED;GRAD"
+  switch t.color_mode {
   case .SAME:
-    new_start, new_end := getRandomColor(), getRandomColor()
-    for &tcd in t.color.depth { tcd.start, tcd.end = new_start, new_end }
+    new_start, new_end := get_random_color(), get_random_color()
+    for &tcd in t.color { tcd.start, tcd.end = new_start, new_end }
   case .MIXED:
-    for &tcd in t.color.depth { tcd.start, tcd.end = getRandomColor(), getRandomColor() }
+    for &tcd in t.color { tcd.start, tcd.end = get_random_color(), get_random_color() }
   case .GRAD:
-    new_start, new_end, next_start, next_end := getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()
-    for &tcd, i in t.color.depth {
+    new_start, new_end, next_start, next_end := get_random_color(), get_random_color(), get_random_color(), get_random_color()
+    for &tcd, i in t.color {
       tcd.current = ColorLerp(new_start, new_end, f32(i) * .111111) //start color gradient
       tcd.start = tcd.current
       tcd.end = ColorLerp(next_start, next_end, f32(i) * .111111) //next color gradient
@@ -140,10 +149,10 @@ initColor :: proc(t: ^TEntity) { using rl
   }
 }
 
-//this is messy, but I couldn't find a better way forward without alot of trial and error
-//style behaviour seems inconsistant and many elements seem to overlap
-//This is trimmed to only what I wanted after trial and error
-initGuiStyle :: proc() { using rl
+// This is messy, but I couldn't find a better way forward without alot of trial and error
+// Style behaviour seems inconsistant and many elements seem to overlap
+// This is trimmed to only what I wanted after trial and error
+init_gui_style :: proc() { using rl
   GDP :: rl.GuiDefaultProperty
   GCP :: rl.GuiControlProperty
 

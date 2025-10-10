@@ -4,20 +4,25 @@ import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 
-@static round :: math.round
-@static sqrt  :: math.sqrt
+///////////////////////////////////////////////////////////////////////////////
+// General purpose utilities
+///////////////////////////////////////////////////////////////////////////////
+
+round :: math.round
+sqrt  :: math.sqrt
 
 //used for drawing a circle about a radius - the odin logo
 cos_sin :: proc(a: f32) -> [2]f32 { return {math.cos(rl.DEG2RAD*a), math.sin(rl.DEG2RAD*a)} }
 
 //random color shortcut
-getRandomColor :: proc() -> rl.Color { using rl
+get_random_color :: proc() -> rl.Color { using rl
   return { u8(GetRandomValue(0,255)), u8(GetRandomValue(0,255)), u8(GetRandomValue(0,255)), 255 }
 }
 
-//check if mouse is in an active location given by rect - ..any exclude_rects optional
-isMouseExclusive :: proc(pos: [2]f32, include: rl.Rectangle, exclude: ..rl.Rectangle) -> (isexclusive: bool) {
-  if exclude != nil { //check for exclusivity if ..any of exclude rects are provided
+//check if mouse is in an active location given by rect - ..any exclude rects optional
+is_mouse_exclusive :: proc(pos: [2]f32, include: rl.Rectangle, exclude: ..rl.Rectangle) -> (isexclusive: bool) {
+  //check for exclusivity if any exclude rects are provided
+  if exclude != nil {
     for ex in exclude {
       if pos.x >= ex.x &&
          pos.y >= ex.y &&
@@ -28,7 +33,8 @@ isMouseExclusive :: proc(pos: [2]f32, include: rl.Rectangle, exclude: ..rl.Recta
       }
     }
   }
-  //if not false from above, return true if pos is in include rect
+  //if not returned false from above, return true if pos is in include rect
+  //else return default false
   if pos.x >= include.x &&
      pos.y >= include.y &&
      pos.x <= include.x + include.width &&
